@@ -38,6 +38,7 @@ This project is created for **ENE331 Laboratory Challenge**. It is focused on lo
 ### System Schematic
 
 The following schematic was provided in the lab handout. It shows how the STM32 is connected to external components like the LED array, button, and Timer2 output.
+
 ![System Schematic](images/system_schematic.png)
 
 ### Block Diagram
