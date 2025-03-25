@@ -15,13 +15,13 @@ This project is created for **ENE331 Laboratory Challenge**. It is focused on lo
 - Show calculation method for timer configuration
 - Timer output must be measured using an **oscilloscope**
 
-### System Schematic
+#### System Schematic
 
 The following schematic was provided in the lab handout. It shows how the STM32 is connected to external components like the LED array, button, and Timer2 output.
 
 ![System Schematic](images/system_schematic.png)
 
-### Block Diagram
+#### Block Diagram
 
 ![diagram](images/diagram.png)
 
