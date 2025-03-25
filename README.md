@@ -3,7 +3,7 @@
 ## Description
 This project is created for **ENE331 Laboratory Challenge**. It is focused on low-level programming with STM32 microcontroller (using direct register access only). The implementation avoids the use of HAL libraries to gain hands-on experience with STM32's peripheral registers.
 
-## 📋 Problem Statement
+## Problem Statement
 
 1. **Clock Configuration**
    - System clock must be set to 72 MHz
@@ -29,7 +29,7 @@ This project is created for **ENE331 Laboratory Challenge**. It is focused on lo
 - LED at PA6 blinks every 1.2 ms
 - LUT operates correctly with button on PA0
 
-## ⚙️ Requirements
+## Requirements
 
 - All GPIO Read/Write operations must be done using **direct Register configuration only**
 - Show calculation method for timer configuration
