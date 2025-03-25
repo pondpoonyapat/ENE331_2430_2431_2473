@@ -26,4 +26,6 @@ The following schematic was provided in the lab handout. It shows how the STM32 
 ![diagram](images/diagram.png)
 
 ## Results
+
+### STM32 Circuit setup
 ![STM32circuit](images/stm32circuit.jpg)
