@@ -1,104 +1,121 @@
-/* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
-/* USER CODE END Header */
-/* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+TIM_HandleTypeDef htim3;
 
-/* USER CODE END Includes */
+int count_timer = 0;
+int count_state = 0;
 
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE BEGIN PV */
-
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-/* USER CODE BEGIN PFP */
+static void MX_TIM3_Init(void);
 
-/* USER CODE END PFP */
+void GPIOA_Config(void) {
+    // Enable GPIOA Clock
+    RCC -> AHB1ENR |= (0x01 << 0);
 
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
+    // Set PA1 - PA3, PA6 as output
+    GPIOA -> MODER |= (0x00 << (0* 2));
+    GPIOA -> MODER |= (0x01 << (1* 2));   // LED 1
+    GPIOA -> MODER |= (0x01 << (2* 2));   // LED 2
+    GPIOA -> MODER |= (0x01 << (3* 2));   // LED 3
+    GPIOA -> MODER |= (0x01 << (6* 2));   // LED 6 Blinking
 
-/* USER CODE END 0 */
+    // Set output type
+    GPIOA -> OTYPER &= (0x00);  // ALL GPIO (PA) output push-pull
 
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
+    // Set GPIO Speed
+    GPIOA -> OSPEEDR &= ~(0x00);  // HIGH speed for PA6
+
+    // PA0 pull-up
+    GPIOA -> PUPDR |= (0x01 << (0 * 2));
+
+    // Disable PA1 - PA3, PA6 pull-up
+    GPIOA -> PUPDR |= (0x00 << (1 * 2));
+    GPIOA -> PUPDR |= (0x00 << (2 * 2));
+    GPIOA -> PUPDR |= (0x00 << (3 * 2));
+    GPIOA -> PUPDR |= (0x00 << (6 * 2));
+}
+
+void GPIOB_Config(void) {
+	// Enable B Clock
+	RCC -> AHB1ENR |= (0x01 << 1);
+
+	// Config PB10 as output
+	GPIOB -> MODER |= (0x01 << (10 * 2));
+
+	// Set output type
+	// ALL GPIO (PB) is  Output push-pull
+	GPIOB-> OTYPER &= (0x00);
+
+	// ALL GPIO (PBA) Speed is High speed Output
+	GPIOB -> OSPEEDR &= ~(0x00);
+
+	// Disable PB10 pull-up
+	GPIOB -> PUPDR |= (0x00 << (10 * 2));
+}
+
+unsigned char read_PA0(void) {
+	return (GPIOA -> IDR & (0x01 << 0)) ? 1 : 0;
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
+	if(htim -> Instance == TIM3) {
+		count_timer++;
+		GPIOB -> ODR ^= (1 << 10);
+	}
+}
+
 int main(void)
 {
 
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  /* USER CODE BEGIN 2 */
+  MX_TIM3_Init();
+  GPIOA_Config();
+  GPIOB_Config();
+  HAL_TIM_Base_Start_IT(&htim3);
 
-  /* USER CODE END 2 */
+  uint8_t button_state = 0;
+  uint8_t last_unbutton_state = 0;
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
+	  uint8_t button_state = read_PA0();
 
-    /* USER CODE BEGIN 3 */
+	  if(button_state == 0 && last_unbutton_state == 1) {
+		  count_state ++;
+		  if (count_state >= 4) {
+			  count_state = 0;
+		  }
+	  }
+
+	  if(count_state == 0){
+		  GPIOA -> ODR |= (0x01 << 1);
+		  GPIOA -> ODR &= ~(0x01 << 2);
+		  GPIOA -> ODR &= ~(0x01 << 3);
+	  }
+	  else if (count_state == 1){
+		  GPIOA -> ODR &= ~(0x01 << 1);
+		  GPIOA -> ODR |= (0x01 << 2);
+		  GPIOA -> ODR &= ~(0x01 << 3);
+	  }
+	  else if (count_state == 2){
+		  GPIOA -> ODR &= ~(0x01 << 1);
+		  GPIOA -> ODR &= ~(0x01 << 2);
+		  GPIOA -> ODR |= (0x01 << 3);
+	  }
+
+	  if (count_timer >= 120) {
+		  GPIOA -> ODR ^= (1 << 6);
+		  count_timer = 0;
+	  }
+
+	  last_unbutton_state = button_state;
   }
-  /* USER CODE END 3 */
+
 }
 
 /**
@@ -121,7 +138,12 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 72;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -131,15 +153,55 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
+}
+
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 1440-1;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 1;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
 }
 
 /**
