@@ -29,3 +29,8 @@ The following schematic was provided in the lab handout. It shows how the STM32 
 
 ### STM32 Circuit setup
 ![STM32circuit](images/stm32circuit.jpg)
+
+## Group Members
+- 65070502430 Poonyapat Watanasupanon
+- 65070502431 Punanat Powlinjong
+- 65070502473 Natchanon Mongkonrattanasit
