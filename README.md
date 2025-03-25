@@ -30,6 +30,9 @@ The following schematic was provided in the lab handout. It shows how the STM32 
 ### STM32 Circuit setup
 ![STM32circuit](images/stm32circuit.jpg)
 
+## STM32 LED Blinking and Timer
+[Click here](https://youtube.com/shorts/9PH7rKfd-kI?feature=share) to watch result video
+
 ## Group Members
 - 65070502430 Poonyapat Watanasupanon
 - 65070502431 Punanat Powlinjong
